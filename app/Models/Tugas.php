@@ -15,6 +15,13 @@ class Tugas extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'nama_tugas',
-    ];
+    'nama_tugas',
+    'prioritas',      
+    'tenggat_waktu', 
+];
+
+public function user()
+{
+    return $this->belongsTo(User::class);
+}
 }

@@ -15,13 +15,14 @@ class User extends Authenticatable
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-    ];
+        'no_hp',   
+        'status',      ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -45,4 +46,20 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function tugas()
+{
+    return $this->hasMany(Tugas::class);
+}
+
+/**
+ * METHOD BARU: Memeriksa apakah pengguna adalah Admin.
+ * Ganti 'admin@daftartugas.com' dengan email yang Anda inginkan untuk Admin.
+ *
+ * @return bool
+ */
+public function isAdmin(): bool
+{
+    return $this->email === 'admin@daftartugas.com';
+}
 }

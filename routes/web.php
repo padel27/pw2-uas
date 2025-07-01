@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\JadwalController;
+use App\Http\Controllers\TugasController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,22 +31,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Rute untuk DASHBOARD (Menampilkan semua tugas)
-    Route::get('/dashboard', [JadwalController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [TugasController::class, 'index'])->name('dashboard');
 
     // Rute untuk MENYIMPAN tugas baru
-    Route::post('/jadwal', [JadwalController::class, 'store'])->name('jadwal.store');
+    Route::post('/tugas', [TugasController::class, 'store'])->name('tugas.store');
 
     // Rute untuk MENAMPILKAN HALAMAN EDIT tugas
-    Route::get('/jadwal/{tugas}/edit', [JadwalController::class, 'edit'])->name('jadwal.edit');
+    Route::get('/tugas/{tugas}/edit', [TugasController::class, 'edit'])->name('tugas.edit');
 
     // Rute untuk MEMPROSES UPDATE nama tugas dari form edit
-    Route::put('/jadwal/{tugas}', [JadwalController::class, 'update'])->name('jadwal.update');
+    Route::put('/tugas/{tugas}', [TugasController::class, 'update'])->name('tugas.update');
 
     // Rute untuk MENGHAPUS tugas
-    Route::delete('/jadwal/{tugas}', [JadwalController::class, 'destroy'])->name('jadwal.destroy');
+    Route::delete('/tugas/{tugas}', [TugasController::class, 'destroy'])->name('tugas.destroy');
 
     // Rute untuk MENGUBAH STATUS tugas menjadi selesai
-    Route::patch('/jadwal/{tugas}/status', [JadwalController::class, 'updateStatus'])->name('jadwal.updateStatus');
+    Route::patch('/tugas/{tugas}/status', [TugasController::class, 'updateStatus'])->name('tugas.updateStatus');
+
+    Route::middleware(['auth', 'verified'])->group(function () {
+
+    // ... (rute untuk profile, dashboard, store, edit, dll.)
+
+    // RUTE BARU UNTUK HALAMAN RIWAYAT
+    Route::get('/riwayat', [TugasController::class, 'history'])->name('riwayat.history');
+});
+
+
 });
 
 

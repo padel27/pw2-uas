@@ -55,3 +55,6 @@ Homestead.json
 .phpactor.json
 auth.json
 >>>>>>> 006e100f43d8ac78043e7618855043a06b9b0680
+
+# IDE Helper
+_ide_helper.php

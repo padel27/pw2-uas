@@ -2,7 +2,7 @@
 <x-app-layout>
   <x-slot name="header">
     <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-      {{ __(key: 'Daftar Tugas') }}
+      {{ __('Daftar Tugas') }}
     </h2>
   </x-slot>
 
@@ -11,14 +11,12 @@
 
       <!-- BAGIAN 1: KARTU STATISTIK -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <!-- Card Total Tugas -->
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
           <div class="p-5">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Tugas</p>
             <p class="mt-1 text-3xl font-semibold text-gray-900 dark:text-gray-100">{{ $semua_tugas->count() }}</p>
           </div>
         </div>
-        <!-- Card Tugas Selesai -->
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
           <div class="p-5">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Tugas Selesai</p>
@@ -26,7 +24,6 @@
               {{ $semua_tugas->where('selesai', true)->count() }}</p>
           </div>
         </div>
-        <!-- Card Belum Selesai -->
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
           <div class="p-5">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Belum Selesai</p>
@@ -40,7 +37,6 @@
       <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900 dark:text-gray-100">
 
-          <!-- Menampilkan pesan sukses -->
           @if (session('success'))
           <div
             class="bg-green-100 dark:bg-green-900/50 border-l-4 border-green-500 text-green-700 dark:text-green-300 p-4 mb-6 rounded-md"
@@ -49,7 +45,6 @@
           </div>
           @endif
 
-          <!-- Form Tambah Tugas (Collapsible/Bisa disembunyikan) -->
           <details class="mb-6 group">
             <summary
               class="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition">
@@ -60,7 +55,7 @@
               </svg>
             </summary>
             <div class="mt-4 border-t dark:border-gray-700 pt-4">
-              <form method="POST" action="{{ route('jadwal.store') }}">
+              <form method="POST" action="{{ route('tugas.store') }}">
                 @csrf
                 <div class="flex flex-col sm:flex-row sm:items-end sm:space-x-4 space-y-4 sm:space-y-0">
                   <div class="flex-grow">
@@ -82,7 +77,6 @@
             </div>
           </details>
 
-          <!-- Tabel Daftar Tugas yang Didesain Ulang -->
           <div class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead class="bg-gray-50 dark:bg-gray-700/50">
@@ -93,6 +87,14 @@
                   <th scope="col"
                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Nama Tugas</th>
+
+                  {{-- KOLOM BARU: Hanya tampil untuk Admin --}}
+                  @if(auth()->user()->isAdmin())
+                  <th scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Pemilik</th>
+                  @endif
+
                   <th scope="col" class="relative px-6 py-3">
                     <span class="sr-only">Aksi</span>
                   </th>
@@ -106,7 +108,7 @@
                     <span
                       class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Selesai</span>
                     @else
-                    <form method="POST" action="{{ route('jadwal.updateStatus', $tugas->id) }}">
+                    <form method="POST" action="{{ route('tugas.updateStatus', $tugas->id) }}">
                       @csrf
                       @method('PATCH')
                       <button type="submit"
@@ -117,11 +119,20 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                     {{ $tugas->nama_tugas }}</td>
+
+                  {{-- DATA BARU: Hanya tampil untuk Admin --}}
+                  @if(auth()->user()->isAdmin())
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    {{-- Kita bisa akses nama user karena sudah pakai with('user') di controller --}}
+                    {{ $tugas->user->name }}
+                  </td>
+                  @endif
+
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div class="flex items-center justify-end space-x-4">
-                      <a href="{{ route('jadwal.edit', $tugas->id) }}"
+                      <a href="{{ route('tugas.edit', $tugas->id) }}"
                         class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">Edit</a>
-                      <form method="POST" action="{{ route('jadwal.destroy', $tugas->id) }}"
+                      <form method="POST" action="{{ route('tugas.destroy', $tugas->id) }}"
                         onsubmit="return confirm('Apakah Anda yakin ingin menghapus tugas ini?');">
                         @csrf
                         @method('DELETE')
@@ -133,7 +144,9 @@
                 </tr>
                 @empty
                 <tr>
-                  <td colspan="3" class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                  {{-- Ubah colspan secara dinamis --}}
+                  <td colspan="{{ auth()->user()->isAdmin() ? '4' : '3' }}"
+                    class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
                     🎉 Semua tugas selesai! Silakan tambah tugas baru.
                   </td>
                 </tr>
