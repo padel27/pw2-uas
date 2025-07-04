@@ -15,13 +15,21 @@ class Tugas extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-    'nama_tugas',
-    'prioritas',      
-    'tenggat_waktu', 
-];
+        'nama_tugas',
+        'user_id',
+        'kategori_id',
+    ];
 
-public function user()
+    /**
+     * Mendefinisikan relasi bahwa setiap tugas dimiliki oleh satu User.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function kategori()
 {
-    return $this->belongsTo(User::class);
+    return $this->belongsTo(Kategori::class);
 }
 }

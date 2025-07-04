@@ -19,6 +19,18 @@
           <x-nav-link :href="route('riwayat.history')" :active="request()->routeIs('riwayat.history')">
             {{ __('Riwayat') }}
           </x-nav-link>
+          {{-- LINK BARU: Hanya tampil untuk Admin --}}
+          @if(auth()->user()->isAdmin())
+          <x-nav-link :href="route('kategori.index')" :active="request()->routeIs('kategori.index')">
+            {{ __('Kategori') }}
+          </x-nav-link>
+          @endif
+          {{-- LINK BARU: Hanya tampil untuk Admin --}}
+          @if(auth()->user()->isAdmin())
+          <x-nav-link :href="route('pengguna.index')" :active="request()->routeIs('pengguna.index')">
+            {{ __('Pengguna') }}
+          </x-nav-link>
+          @endif
         </div>
         <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
           <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">

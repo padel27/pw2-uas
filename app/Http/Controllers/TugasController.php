@@ -1,105 +1,151 @@
 <?php
 
-// app/Http/Controllers/JadwalController.php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Tugas;
+use App\Models\User;
+use App\Models\Kategori;
 
 class TugasController extends Controller
 {
-/**
- * Menampilkan dashboard.
- * Logika berbeda untuk Admin dan User biasa.
- */
-public function index()
-{
-    $user = auth()->user();
-    $daftar_tugas = [];
+    /**
+     * Menampilkan halaman dashboard.
+     * Admin melihat semua tugas, user biasa hanya melihat miliknya.
+     */
+    public function index()
+    {
+        $user = auth()->user();
+        $data = [];
 
-    if ($user->isAdmin()) {
-        // Jika Admin, ambil SEMUA tugas dan data pemiliknya (user)
-        // with('user') adalah untuk Eager Loading, sangat penting untuk performa
-        $daftar_tugas = Tugas::with('user')->orderBy('created_at', 'desc')->get();
-    } else {
-        // Jika User biasa, ambil hanya tugas miliknya
-        $daftar_tugas = $user->tugas()->orderBy('created_at', 'desc')->get();
+        // Ambil semua kategori untuk form tambah tugas
+        $data['semua_kategori'] = Kategori::orderBy('nama_kategori')->get();
+
+        if ($user->isAdmin()) {
+            $data['semua_tugas'] = Tugas::with('user', 'kategori')
+                ->orderBy('created_at', 'desc')
+                ->get();
+            $data['semua_pengguna'] = User::where('id', '!=', $user->id)
+                ->orderBy('name')
+                ->get();
+        } else {
+            $data['semua_tugas'] = $user->tugas()
+                ->with('kategori')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        return view('dashboard', $data);
     }
 
-    return view('dashboard', [
-        'semua_tugas' => $daftar_tugas
-    ]);
-}
-
-    // Menyimpan tugas baru
     /**
- * Menyimpan tugas baru ke database dan mengaitkannya dengan pengguna yang login.
- */
-public function store(Request $request)
-{
-    $validated = $request->validate(['nama_tugas' => 'required|string|max:255']);
+     * Menyimpan tugas baru ke database.
+     * Admin bisa memilih user, user biasa otomatis miliknya sendiri.
+     */
+    public function store(Request $request)
+    {
+        $user = auth()->user();
 
-    // SEBELUM: Tugas::create($request->only('nama_tugas'));
-    // SESUDAH: Membuat tugas melalui relasi, 'user_id' akan terisi otomatis
-    auth()->user()->tugas()->create($validated);
+        $rules = [
+            'nama_tugas' => 'required|string|max:255',
+            'kategori_id' => 'nullable|exists:kategoris,id',
+        ];
 
-    return back()->with('success', 'Tugas baru berhasil ditambahkan!');
-}
+        if ($user->isAdmin()) {
+            $rules['user_id'] = 'required|exists:users,id';
+        }
 
-    // METHOD BARU: Menampilkan halaman form edit
+        $validated = $request->validate($rules);
+        $dataToCreate = $validated;
+
+        if (! $user->isAdmin()) {
+            $dataToCreate['user_id'] = $user->id;
+        }
+
+        Tugas::create($dataToCreate);
+
+        return back()->with('success', 'Tugas baru berhasil ditambahkan!');
+    }
+
+    /**
+     * Menampilkan halaman edit tugas.
+     * Hanya bisa diakses oleh pemilik atau admin.
+     */
     public function edit(Tugas $tugas)
     {
-        return view('tugas.edit', ['tugas' => $tugas]);
+        if ($tugas->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+            abort(403, 'AKSES DITOLAK');
+        }
+
+        $kategoris = Kategori::orderBy('nama_kategori')->get();
+
+        return view('tugas.edit', [
+            'tugas' => $tugas,
+            'kategoris' => $kategoris,
+        ]);
     }
 
-    // METHOD BARU: Memproses update data dari form edit
+    /**
+     * Memproses update tugas dari form edit.
+     */
     public function update(Request $request, Tugas $tugas)
     {
-        $request->validate(['nama_tugas' => 'required|string|max:255']);
-        $tugas->update($request->only('nama_tugas'));
+        if ($tugas->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+            abort(403, 'AKSES DITOLAK');
+        }
+
+        $validated = $request->validate([
+            'nama_tugas' => 'required|string|max:255',
+            'kategori_id' => 'nullable|exists:kategoris,id',
+        ]);
+
+        $tugas->update($validated);
+
         return redirect()->route('dashboard')->with('success', 'Tugas berhasil diperbarui!');
     }
 
-    // METHOD BARU: Menghapus tugas
+    /**
+     * Menghapus tugas dari database.
+     */
     public function destroy(Tugas $tugas)
     {
         $tugas->delete();
+
         return back()->with('success', 'Tugas berhasil dihapus!');
     }
 
-    // Mengubah status tugas menjadi selesai
+    /**
+     * Menandai tugas sebagai selesai.
+     */
     public function updateStatus(Tugas $tugas)
     {
         $tugas->selesai = true;
         $tugas->save();
+
         return back()->with('success', 'Status tugas berhasil diperbarui!');
     }
 
-/**
- * METHOD BARU: Menampilkan halaman riwayat tugas yang sudah selesai.
- */
     /**
- * Menampilkan halaman riwayat.
- * Logika berbeda untuk Admin dan User biasa.
- */
-public function history()
-{
-    $user = auth()->user();
-    $tugas_selesai = [];
+     * Menampilkan daftar tugas yang sudah selesai.
+     */
+    public function history()
+    {
+        $user = auth()->user();
 
-    if ($user->isAdmin()) {
-        // Jika Admin, ambil SEMUA tugas yang selesai
-        $tugas_selesai = Tugas::with('user')->where('selesai', true)
-                            ->orderBy('updated_at', 'desc')
-                            ->get();
-    } else {
-        // Jika User biasa, ambil hanya tugas selesai miliknya
-        $tugas_selesai = $user->tugas()->where('selesai', true)
-                            ->orderBy('updated_at', 'desc')
-                            ->get();
+        if ($user->isAdmin()) {
+            $tugas_selesai = Tugas::with('user')
+                ->where('selesai', true)
+                ->orderBy('updated_at', 'desc')
+                ->get();
+        } else {
+            $tugas_selesai = $user->tugas()
+                ->where('selesai', true)
+                ->orderBy('updated_at', 'desc')
+                ->get();
+        }
+
+        return view('riwayat.history', [
+            'semua_tugas_selesai' => $tugas_selesai
+        ]);
     }
-
-    return view('riwayat.history', ['semua_tugas_selesai' => $tugas_selesai]);
-}
 }
