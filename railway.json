@@ -1,21 +1,11 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "phases": {
-      "install": {
-        "cmds": [
-          "npm install",
-          "composer install --no-dev --optimize-autoloader"
-        ]
-      },
-      "build": {
-        "cmds": [
-          "npm run build",
-          "php artisan key:generate --force",
-          "php artisan config:cache"
-        ]
-      }
-    }
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "php artisan migrate --force && echo 'MIGRATION COMPLETE! NOW REVERT RAILWAY.JSON' && sleep 3600",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 1
   }
 }
