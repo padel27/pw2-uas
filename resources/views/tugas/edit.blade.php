@@ -45,6 +45,32 @@
                   @enderror
                 </div>
 
+                {{-- Prioritas --}}
+<div class="mt-4">
+  <label for="prioritas" class="block font-medium text-sm text-gray-700 dark:text-gray-300">Prioritas</label>
+  <select id="prioritas" name="prioritas"
+    class="block mt-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+    <option value="Rendah" @selected(old('prioritas', $tugas->prioritas) == 'Rendah')>Rendah</option>
+    <option value="Sedang" @selected(old('prioritas', $tugas->prioritas) == 'Sedang')>Sedang</option>
+    <option value="Tinggi" @selected(old('prioritas', $tugas->prioritas) == 'Tinggi')>Tinggi</option>
+  </select>
+  @error('prioritas')
+  <p class="text-sm text-red-600 mt-2">{{ $message }}</p>
+  @enderror
+</div>
+
+{{-- Deadline --}}
+<div class="mt-4">
+  <label for="tenggat_waktu" class="block font-medium text-sm text-gray-700 dark:text-gray-300">Deadline</label>
+  <input id="tenggat_waktu"
+    class="block mt-1 w-full rounded-md shadow-sm border-gray-300 text-gray-900 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+    type="date" name="tenggat_waktu" value="{{ old('tenggat_waktu', $tugas->tenggat_waktu) }}" />
+  @error('tenggat_waktu')
+  <p class="text-sm text-red-600 mt-2">{{ $message }}</p>
+  @enderror
+</div>
+
+
                 <div class="flex items-center justify-end mt-6">
                   <a href="{{ route('dashboard') }}"
                     class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 mr-4">

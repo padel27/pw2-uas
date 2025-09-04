@@ -79,6 +79,23 @@
                         </select>
                       </div>
 
+                      <div class="flex-grow">
+  <label for="prioritas" class="sr-only">Prioritas</label>
+  <select name="prioritas" id="prioritas"
+    class="block w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+    <option value="Rendah">Prioritas Rendah</option>
+    <option value="Sedang">Prioritas Sedang</option>
+    <option value="Tinggi">Prioritas Tinggi</option>
+  </select>
+</div>
+
+<div class="flex-grow">
+  <label for="tenggat_waktu" class="sr-only">Deadline</label>
+  <input type="date" name="tenggat_waktu" id="tenggat_waktu"
+    class="block w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+</div>
+
+
                       @if(auth()->user()->isAdmin())
                       <div class="flex-grow">
                         <label for="user_id" class="sr-only">Tugaskan ke</label>
@@ -117,6 +134,13 @@
                       <th scope="col"
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Kategori</th>
+                      <th scope="col"
+  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+  Prioritas</th>
+<th scope="col"
+  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+  Deadline</th>
+
 
                       @if(auth()->user()->isAdmin())
                       <th scope="col"
@@ -151,6 +175,30 @@
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {{ $tugas->kategori->nama_kategori ?? '-' }}
                       </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm">
+  @if($tugas->prioritas == 'Tinggi')
+    <span class="px-2 py-1 text-xs font-semibold rounded bg-red-600 text-white">Tinggi</span>
+  @elseif($tugas->prioritas == 'Sedang')
+    <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-500 text-black">Sedang</span>
+  @else
+    <span class="px-2 py-1 text-xs font-semibold rounded bg-green-600 text-white">Rendah</span>
+  @endif
+</td>
+
+<td class="px-6 py-4 whitespace-nowrap text-sm">
+  @if($tugas->tenggat_waktu)
+    {{ \Carbon\Carbon::parse($tugas->tenggat_waktu)->format('d M Y') }}
+
+    @if(\Carbon\Carbon::parse($tugas->tenggat_waktu)->isPast())
+      <span class="ml-2 px-2 py-1 bg-red-700 text-white text-xs rounded">Lewat</span>
+    @elseif(\Carbon\Carbon::parse($tugas->tenggat_waktu)->diffInDays(now()) <= 2)
+      <span class="ml-2 px-2 py-1 bg-yellow-600 text-black text-xs rounded">Mendekati</span>
+    @endif
+  @else
+    -
+  @endif
+</td>
+
 
                       @if(auth()->user()->isAdmin())
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -174,7 +222,7 @@
                     </tr>
                     @empty
                     <tr>
-                      <td colspan="{{ auth()->user()->isAdmin() ? '5' : '4' }}"
+                      <td colspan="{{ auth()->user()->isAdmin() ? '7' : '6' }}"
                         class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
                         🎉 Semua tugas selesai! Silakan tambah tugas baru.
                       </td>

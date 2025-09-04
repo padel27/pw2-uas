@@ -25,6 +25,7 @@ class TugasController extends Controller
             $data['semua_tugas'] = Tugas::with('user', 'kategori')
                 ->orderBy('created_at', 'desc')
                 ->get();
+
             $data['semua_pengguna'] = User::where('id', '!=', $user->id)
                 ->orderBy('name')
                 ->get();
@@ -47,24 +48,27 @@ class TugasController extends Controller
         $user = auth()->user();
 
         $rules = [
-            'nama_tugas' => 'required|string|max:255',
-            'kategori_id' => 'nullable|exists:kategoris,id',
+            'nama_tugas'    => 'required|string|max:255',
+            'kategori_id'   => 'nullable|exists:kategoris,id',
+            'prioritas'     => 'required|string',
+            'tenggat_waktu' => 'nullable|date',
         ];
 
+        // Kalau admin boleh pilih user
         if ($user->isAdmin()) {
             $rules['user_id'] = 'required|exists:users,id';
         }
 
         $validated = $request->validate($rules);
-        $dataToCreate = $validated;
 
+        // Kalau bukan admin, isi otomatis pakai user yang login
         if (! $user->isAdmin()) {
-            $dataToCreate['user_id'] = $user->id;
+            $validated['user_id'] = $user->id;
         }
 
-        Tugas::create($dataToCreate);
+        Tugas::create($validated);
 
-        return back()->with('success', 'Tugas baru berhasil ditambahkan!');
+        return redirect()->route('dashboard')->with('success', 'Tugas baru berhasil ditambahkan!');
     }
 
     /**
@@ -80,7 +84,7 @@ class TugasController extends Controller
         $kategoris = Kategori::orderBy('nama_kategori')->get();
 
         return view('tugas.edit', [
-            'tugas' => $tugas,
+            'tugas'     => $tugas,
             'kategoris' => $kategoris,
         ]);
     }
@@ -90,13 +94,16 @@ class TugasController extends Controller
      */
     public function update(Request $request, Tugas $tugas)
     {
+        // Cek apakah user pemilik tugas atau admin
         if ($tugas->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
             abort(403, 'AKSES DITOLAK');
         }
 
         $validated = $request->validate([
-            'nama_tugas' => 'required|string|max:255',
-            'kategori_id' => 'nullable|exists:kategoris,id',
+            'nama_tugas'    => 'required|string|max:255',
+            'kategori_id'   => 'nullable|exists:kategoris,id',
+            'prioritas'     => 'nullable|in:Rendah,Sedang,Tinggi',
+            'tenggat_waktu' => 'nullable|date',
         ]);
 
         $tugas->update($validated);
@@ -145,7 +152,7 @@ class TugasController extends Controller
         }
 
         return view('riwayat.history', [
-            'semua_tugas_selesai' => $tugas_selesai
+            'semua_tugas_selesai' => $tugas_selesai,
         ]);
     }
 }

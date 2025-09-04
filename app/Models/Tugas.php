@@ -9,27 +9,25 @@ class Tugas extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    // Kolom yang boleh diisi lewat mass-assignment (create, update)
     protected $fillable = [
         'nama_tugas',
-        'user_id',
         'kategori_id',
+        'prioritas',
+        'tenggat_waktu',
+        'user_id',
+        'selesai',
     ];
 
-    /**
-     * Mendefinisikan relasi bahwa setiap tugas dimiliki oleh satu User.
-     */
+    // Relasi ke User (setiap tugas dimiliki oleh 1 user)
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    // Relasi ke Kategori (opsional)
     public function kategori()
-{
-    return $this->belongsTo(Kategori::class);
-}
+    {
+        return $this->belongsTo(Kategori::class);
+    }
 }
