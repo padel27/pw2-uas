@@ -2,15 +2,29 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "nixpacksConfig": {
-      "installCommand": "npm install && composer install",
-      "buildCommand": "npm run build && php artisan config:clear",
-      "startCommand": "php artisan serve --host 0.0.0.0 --port {{.PORT}}"
+    "phases": {
+      "install": {
+        "cmds": [
+          "npm install",
+          "composer install --no-dev --optimize-autoloader"
+        ]
+      },
+      "build": {
+        "cmds": [
+          "npm run build",
+          "php artisan key:generate --force",
+          "php artisan storage:link",
+          "php artisan config:clear",
+          "php artisan route:clear",
+          "php artisan view:clear",
+          "php artisan migrate --force"
+        ]
+      }
     }
   },
   "deploy": {
-    "startCommand": "php artisan serve --host 0.0.0.0 --port {{.PORT}}",
+    "startCommand": "heroku-php-apache2 public/",
     "healthcheckPath": "/",
-    "healthcheckTimeout": 120
+    "healthcheckTimeout": 200
   }
 }
